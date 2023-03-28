@@ -10,7 +10,7 @@ the LICENSE file.
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <LittleFS.h>
-#define EMM_FILE_READ r
+#define EMM_FILE_READ "r"
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <SPIFFS.h>
 #define EMM_FILE_READ FILE_READ

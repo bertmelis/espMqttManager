@@ -22,8 +22,8 @@ void loop() {
   if (millis() - lastMillis > 10000) {
     lastMillis = millis();
     uint8_t signalQuality = espMqttManagerHelpers::signalQuality();
-    char sqStr[5];
-    snprintf(sqStr, sizeof(sqStr), "%d%", signalQuality);
+    char sqStr[4];
+    snprintf(sqStr, sizeof(sqStr), "%d", signalQuality);
     espMqttManager::mqttClient.publish("test/topic", 0, false, sqStr);
   }
   espMqttManager::loop();

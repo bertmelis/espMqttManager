@@ -1,6 +1,6 @@
 ## espMqttManger
 
-Boilerplate code to manage WiFi and MQTT for Espressif ESP32 ~~and ESP8266~~ devices using the Arduino framework.
+Boilerplate code to manage WiFi and MQTT for Espressif ESP32 and ESP8266 devices using the Arduino framework.
 
 Based on [espMqttClient](https://github.com/bertmelis/espMqttClient)
 

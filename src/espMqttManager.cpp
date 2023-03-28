@@ -73,12 +73,12 @@ struct Config {
 } config;
 
 bool getConfig() {
-  if (!SPIFFS.begin(true)){
+  if (!SPIFFS.begin(true)) {
      emm_log_e("Error mounting SPIFFS");
      return false;
   }
   File file = SPIFFS.open(EMM_CONFIG_FILE);
-  if(!file){
+  if (!file) {
     emm_log_e("Error opening settings.json");
     return false;
   }
@@ -158,7 +158,7 @@ void espMqttManager::start() {
 void espMqttManager::loop() {
   // espMqttManager doesn't use WiFi events so we have to monitor WiFi here
   if (WiFi.status() != WL_CONNECTED) {
-    //mqttClient.disconnect(true);  // this will set state back to _mqttConnecting
+    // mqttClient.disconnect(true);  // this will set state back to _mqttConnecting
     state = waitForWiFi;
   }
   blinker.loop();

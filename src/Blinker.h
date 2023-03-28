@@ -30,7 +30,7 @@ extern Colour orange;
 
 class Blinker {
  public:
-  Blinker(int pin);
+  explicit Blinker(int pin);
   #ifdef RGB_BUILTIN
   void blink(uint32_t interval, Colour colour);
   #else

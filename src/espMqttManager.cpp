@@ -46,7 +46,11 @@ espMqttClientSecure espMqttManager::mqttClient;
 #else
 espMqttClient espMqttManager::mqttClient;
 #endif
+#ifdef RGB_BUILTIN
 espMqttManagerHelpers::Blinker blinker(RGB_BUILTIN);
+#else
+espMqttManagerHelpers::Blinker blinker(LED_BUILTIN);
+#endif
 
 void idle();
 void waitForWiFi();

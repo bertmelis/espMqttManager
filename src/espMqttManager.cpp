@@ -7,7 +7,13 @@ the LICENSE file.
 */
 
 #include <Arduino.h>
+
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <LittleFS.h>
+#elif defined(ARDUINO_ARCH_ESP32)
 #include <SPIFFS.h>
+#endif
+
 #include <IPAddress.h>
 
 #include <ArduinoJson.h>
@@ -73,11 +79,17 @@ struct Config {
 } config;
 
 bool getConfig() {
-  if (!SPIFFS.begin(true)) {
-     emm_log_e("Error mounting SPIFFS");
+  #if defined(ARDUINO_ARCH_ESP8266)
+  #define EMM_FILESYSTEM LittleFS
+  #elif defined(ARDUINO_ARCH_ESP32)
+  #define EMM_FILESYSTEM SPIFFS
+  #endif
+
+  if (!EMM_FILESYSTEM.begin(true)) {
+     emm_log_e("Error mounting filesystem");
      return false;
   }
-  File file = SPIFFS.open(EMM_CONFIG_FILE);
+  File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE);
   if (!file) {
     emm_log_e("Error opening settings.json");
     return false;
@@ -108,7 +120,7 @@ bool getConfig() {
           doc["devicename"] | "",
           sizeof(config.devicename));
   file.close();
-  SPIFFS.end();
+  EMM_FILESYSTEM.end();
   return true;
 }
 

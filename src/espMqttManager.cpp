@@ -85,11 +85,11 @@ bool getConfig() {
   #define EMM_FILESYSTEM SPIFFS
   #endif
 
-  if (!EMM_FILESYSTEM.begin(true)) {
+  if (!EMM_FILESYSTEM.begin()) {
      emm_log_e("Error mounting filesystem");
      return false;
   }
-  File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE);
+  File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE, FILE_READ);
   if (!file) {
     emm_log_e("Error opening settings.json");
     return false;
@@ -307,6 +307,7 @@ void onMqttClientConnected(bool sessionPresent) {
 }
 
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
+  (void) reason;
   timer = millis();
   if (state > idle && state <= connected) {
     #ifdef RGB_BUILTIN

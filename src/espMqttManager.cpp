@@ -10,8 +10,10 @@ the LICENSE file.
 
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <LittleFS.h>
+#define EMM_FILE_READ r
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <SPIFFS.h>
+#define EMM_FILE_READ FILE_READ
 #endif
 
 #include <IPAddress.h>
@@ -93,7 +95,7 @@ bool getConfig() {
      emm_log_e("Error mounting filesystem");
      return false;
   }
-  File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE, FILE_READ);
+  File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE, EMM_FILE_READ);
   if (!file) {
     emm_log_e("Error opening settings.json");
     return false;

@@ -1,0 +1,5 @@
+.pio
+.vscode
+coverage
+*cov.info
+.idea

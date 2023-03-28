@@ -4,7 +4,7 @@
 
 void setup() {
   delay(10000);
-  Serial.begin(115200);
+  Serial.begin(74880);
   espMqttManager::setup();
   espMqttManager::start();
 }

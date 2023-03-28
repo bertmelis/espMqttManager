@@ -1,0 +1,8 @@
+{
+  "SSID": "network-ssid",
+  "PSK": "network-psk",
+  "IPAddress": [0,0,0,0],
+  "hostname" : "mqtt.domain.tld",
+  "port": 1883,
+  "devicename": "testdevice"
+}

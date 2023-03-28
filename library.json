@@ -1,0 +1,37 @@
+{
+  "name": "espMqttManager",
+  "keywords": "iot, home, automation, mqtt, client, esp32",
+  "description": "Boilerplate to connect your ESP32 to MQTT",
+  "authors":
+  {
+    "name": "Bert Melis",
+    "url": "https://github.com/bertmelis"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/bertmelis/espMqttManager",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/bertmelis/espMqttManager.git"
+  },
+  "version": "0.0.1",
+  "frameworks": "arduino",
+  "platforms": ["espressif32"],
+  "headers": ["espMqttManager.h"],
+  "dependencies": [
+    {
+      "owner": "bertmelis",
+      "name": "espMqttClient",
+      "version": "^1.4.2"
+    },
+    {
+      "owner": "bblanchon",
+      "name": "ArduinoJson",
+      "version": "^6.21.1"
+    }
+  ],
+  "build":
+  {
+    "libLDFMode": "deep+"
+  }
+}

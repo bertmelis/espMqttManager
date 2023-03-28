@@ -11,6 +11,10 @@ the LICENSE file.
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uintx_t
 
+#ifndef !defined(ARDUINO_ARCH_ESP32) || !defined(ARDUINO_ARCH_ESP8266)
+#error Platform not supported
+#endif
+
 #include <Arduino.h>  // millis(), Update
 
 #define SECS_PER_MIN  (60UL)

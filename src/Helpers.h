@@ -11,10 +11,16 @@ the LICENSE file.
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uintx_t
 
-#include <Arduino.h>  // millis(), Update
-//#include <ESP8266WiFi.h>  //  WiFi.RSSI()
+#include <Arduino.h>  // millis()
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>  //  WiFi.RSSI()
+#include <Updater.h>
+#elif defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
 #include <Update.h>
+#else
+#error Platform not supported
+#endif
 
 namespace espMqttManagerHelpers {
 

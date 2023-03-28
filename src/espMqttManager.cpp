@@ -7,7 +7,15 @@ the LICENSE file.
 */
 
 #include <Arduino.h>
+
+#if defined(ARDUINO_ARCH_ESP8266)
+#include <LittleFS.h>
+#define EMM_FILE_READ "r"
+#elif defined(ARDUINO_ARCH_ESP32)
 #include <SPIFFS.h>
+#define EMM_FILE_READ FILE_READ
+#endif
+
 #include <IPAddress.h>
 
 #include <ArduinoJson.h>
@@ -40,7 +48,11 @@ espMqttClientSecure espMqttManager::mqttClient;
 #else
 espMqttClient espMqttManager::mqttClient;
 #endif
+#ifdef RGB_BUILTIN
 espMqttManagerHelpers::Blinker blinker(RGB_BUILTIN);
+#else
+espMqttManagerHelpers::Blinker blinker(LED_BUILTIN);
+#endif
 
 void idle();
 void waitForWiFi();
@@ -73,12 +85,18 @@ struct Config {
 } config;
 
 bool getConfig() {
-  if (!SPIFFS.begin(true)){
-     emm_log_e("Error mounting SPIFFS");
+  #if defined(ARDUINO_ARCH_ESP8266)
+  #define EMM_FILESYSTEM LittleFS
+  #elif defined(ARDUINO_ARCH_ESP32)
+  #define EMM_FILESYSTEM SPIFFS
+  #endif
+
+  if (!EMM_FILESYSTEM.begin()) {
+     emm_log_e("Error mounting filesystem");
      return false;
   }
-  File file = SPIFFS.open(EMM_CONFIG_FILE);
-  if(!file){
+  File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE, EMM_FILE_READ);
+  if (!file) {
     emm_log_e("Error opening settings.json");
     return false;
   }
@@ -108,7 +126,7 @@ bool getConfig() {
           doc["devicename"] | "",
           sizeof(config.devicename));
   file.close();
-  SPIFFS.end();
+  EMM_FILESYSTEM.end();
   return true;
 }
 
@@ -158,7 +176,7 @@ void espMqttManager::start() {
 void espMqttManager::loop() {
   // espMqttManager doesn't use WiFi events so we have to monitor WiFi here
   if (WiFi.status() != WL_CONNECTED) {
-    //mqttClient.disconnect(true);  // this will set state back to _mqttConnecting
+    // mqttClient.disconnect(true);  // this will set state back to _mqttConnecting
     state = waitForWiFi;
   }
   blinker.loop();
@@ -295,6 +313,7 @@ void onMqttClientConnected(bool sessionPresent) {
 }
 
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
+  (void) reason;
   timer = millis();
   if (state > idle && state <= connected) {
     #ifdef RGB_BUILTIN

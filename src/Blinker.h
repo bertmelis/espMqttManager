@@ -8,7 +8,7 @@ the LICENSE file.
 
 #pragma once
 
-#ifndef !defined(ARDUINO_ARCH_ESP32) || !defined(ARDUINO_ARCH_ESP8266)
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH_ESP8266)
 #error Platform not supported
 #endif
 
@@ -30,7 +30,7 @@ extern Colour orange;
 
 class Blinker {
  public:
-  Blinker(int pin);
+  explicit Blinker(int pin);
   #ifdef RGB_BUILTIN
   void blink(uint32_t interval, Colour colour);
   #else

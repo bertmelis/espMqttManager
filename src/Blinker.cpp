@@ -32,11 +32,13 @@ Blinker::Blinker(int pin)
 
 #ifdef RGB_BUILTIN
 void Blinker::blink(uint32_t interval, Colour colour) {
-  _interval = interval;
 #else
 void Blinker::blink(uint32_t interval) {
 #endif
+  #ifdef RGB_BUILTIN
   _colour = colour;
+  #endif
+  _interval = interval;
   _lastInterval = millis() - _interval;
   _ledState = false;
   _state = true;

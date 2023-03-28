@@ -48,10 +48,10 @@ void handleUpdate(const uint8_t* payload, size_t length, size_t index, size_t to
     if (Update.end()) {
       espMqttManagerHelpers::updated = true;
     } else {
-      //Update.printError(Serial);
+      // Update.printError(Serial);
       Update.clearError();
     }
   }
 }
 
-} // end namespace espMqttManagerHelpers
+}  // end namespace espMqttManagerHelpers

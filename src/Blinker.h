@@ -8,7 +8,7 @@ the LICENSE file.
 
 #pragma once
 
-#if !defined(ARDUINO_ARCH_ESP32) || !defined(ARDUINO_ARCH_ESP8266)
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH_ESP8266)
 #error Platform not supported
 #endif
 

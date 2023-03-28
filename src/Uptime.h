@@ -11,7 +11,7 @@ the LICENSE file.
 #include <stddef.h>  // size_t
 #include <stdint.h>  // uintx_t
 
-#if !defined(ARDUINO_ARCH_ESP32) || !defined(ARDUINO_ARCH_ESP8266)
+#if !defined(ARDUINO_ARCH_ESP32) && !defined(ARDUINO_ARCH_ESP8266)
 #error Platform not supported
 #endif
 

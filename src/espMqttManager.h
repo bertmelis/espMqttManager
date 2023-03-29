@@ -18,10 +18,10 @@ the LICENSE file.
 
 #include <espMqttClient.h>
 
-#include "Config.h"
-#include "Helpers.h"
-#include "Uptime.h"
-#include "Blinker.h"
+#include "Helpers/Config.h"
+#include "Helpers/Helpers.h"
+#include "Helpers/Uptime.h"
+#include "Helpers/Blinker.h"
 
 #ifndef ESP_MQTT_MANAGER_SECURE
 #define ESP_MQTT_MANAGER_SECURE 0

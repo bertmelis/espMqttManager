@@ -21,7 +21,6 @@ the LICENSE file.
 #include "Helpers/Config.h"
 #include "Helpers/Helpers.h"
 #include "Helpers/Uptime.h"
-#include "Helpers/Blinker.h"
 
 #ifndef ESP_MQTT_MANAGER_SECURE
 #define ESP_MQTT_MANAGER_SECURE 0

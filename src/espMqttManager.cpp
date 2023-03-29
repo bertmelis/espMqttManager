@@ -124,12 +124,14 @@ void espMqttManager::sessionReady() {
 }
 
 void espMqttManager::disconnect(bool clearSession) {
-  mqttClient.disconnect();
+  // set state first to be in proper state when handling onMqttClientDisconnected
   if (clearSession) {
     state = waitForDisconnectCleanSession;
   } else {
     state = waitForDisconnect;
   }
+  timer = millis();
+  mqttClient.disconnect();
 }
 
 void idle() {
@@ -182,7 +184,7 @@ void connected() {
 void waitForDisconnect() {
   // state released by espMqttClient onDisconnect callback or force close connection
   if (millis() - timer > ESP_MQTT_MANAGER_DISCONNECT_TIMEOUT) {
-    emm_log_i("Disconnecting from MQTT (CS)");
+    emm_log_i("Disconnecting from MQTT");
     espMqttManager::mqttClient.disconnect(true);
   }
 }
@@ -247,7 +249,11 @@ void onMqttClientConnected(bool sessionPresent) {
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
   (void) reason;
   timer = millis();
-  if (state > idle && state <= connected) {
+  if (state == waitForWiFi ||
+      state == reconnectWaitMqtt ||
+      state == waitForMqtt ||
+      state == setupSession ||
+      state == connected) {
     #ifdef RGB_BUILTIN
     blinker.blink(250, espMqttManagerHelpers::blue);
     #elif defined (LED_BUILTIN)

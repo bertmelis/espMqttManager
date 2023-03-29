@@ -35,6 +35,4 @@ char* Uptime::getUptimeStr() {
   return _uptimeStr;
 }
 
-Uptime uptime;
-
 }  // end namespace espMqttManagerHelpers

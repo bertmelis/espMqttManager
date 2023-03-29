@@ -39,6 +39,4 @@ class Uptime {
   uint32_t _lastMillis;
 };
 
-extern Uptime uptime;
-
 }  // end namespace espMqttManagerHelpers

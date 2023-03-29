@@ -73,6 +73,7 @@ uint32_t getBackoffTimerVal(uint32_t currentInterval) {
 void espMqttManager::setup() {
   WiFi.setAutoReconnect(true);
   WiFi.setAutoConnect(false);
+  WiFi.persistent(false);
 
   if (!config.getConfig()) {
     emm_log_e("Error getting config");

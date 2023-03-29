@@ -6,7 +6,7 @@ Based on [espMqttClient](https://github.com/bertmelis/espMqttClient)
 
 ## Usage
 
-#### Create `/config.json` in the ESPs filesystem (SPIFFS)
+#### Create `/config.json` in the ESP's filesystem (SPIFFS)
 
 ```
 {
@@ -19,7 +19,7 @@ Based on [espMqttClient](https://github.com/bertmelis/espMqttClient)
 }
 ```
 
-* You don't have to specify an IP address and hostname of the MQTT broker. The Broker's hostname takes precedence over IP.
+* You don't have to specify both an IP address and hostname of the MQTT broker. The Broker's hostname takes precedence over IP.
 * `port` and `devicename` are optional.
 
 Use `pio run -t uploadfs` to upload when using Platformio.
@@ -28,7 +28,7 @@ Use `pio run -t uploadfs` to upload when using Platformio.
 
 Below is a simple version of how to use espMqttManager. Just add the header, call setup, start and loop.
 
-The methods are not wrapped in a class, only in a namespace. The MQTT client is available using `espMQttManager::mqttClient`.
+The methods are not wrapped in a class, only in a namespace. The MQTT client is available using `espMqttManager::mqttClient`.
 
 ```cpp
 #include <Arduino.h>
@@ -57,36 +57,26 @@ void loop() {
 
 ## Advanced usage
 
-#### Standard function
+#### Standard usage functions
 
-```cpp
-void setup();
-```
+##### `void espMqttManager::setup();`
 
 Setup espMqttManager. Call from Arduino setup.
 
-```cpp
-void start();
-```
+`void espMqttManager::start();`
 
 Start espMqttManager. Call from Arduino setup. After calling this, the device will try to connect to WiFi.
-Make so to set any custom properties of the MQTT client before calling `start()`.
+Make sure to set any custom properties of the MQTT client before calling `espMqttManager::start()`.
 
-```cpp
-void loop();
-```
+##### `void espMqttManager::loop();`
 
 Worker task of the manager. Call from Arduino loop().
 
-```cpp
-void sessionReady();
-```
+##### `void espMqttManager::sessionReady();`
 
 See Event hooks, onSetupSession
 
-```cpp
-void disconnect(bool clearSession = false);
-```
+##### `void espMqttManager::disconnect(bool clearSession = false);`
 
 Disconnect from MQTT. WiFi will not disconnect. espMqttManager will try to cleanly disconnect from MQTT but forcibly after 10 seconds.
 When setting `clearSession` to `true`, espMqttManager will clear the session from the broker and disconnect.
@@ -96,11 +86,9 @@ Note that espMqttManager will not reconnect automatically after calling disconne
 
 #### Event hooks
 
-There are a few functions defined but only weakly linked. You can override these in your code.
+There are a few functions -callbacks- defined but only weakly linked. You can override these in your code.
 
-```cpp
-void onSetupSession();
-```
+##### `void onSetupSession();`
 
 onSetupSession is called when a connection to the MQTT broker has been
 established but no session was found (clean session = true).
@@ -108,37 +96,27 @@ established but no session was found (clean session = true).
 You can use this function to set up the session eg. make subscriptions etc.
 When done, make sure to call espMqttManager::sessionReady to complete the setup.
 
-```cpp
-void onMqttConnected();
-```
+##### `void onMqttConnected();`
 
 Called when the device is fully connected to MQTT and the session has been setup
 
-```cpp
-void onMqttDisconnected();
-```
+##### `void onMqttDisconnected(espMqttClientTypes::DisconnectReason reason);`
 
 Called whenever the device disconnects from MQTT.
 espMqttManager will automatically reconnect, you don't have to do this.
 
-```cpp
-void onReset();
-```
+##### `void onReset();`
 onReset is called when the device is fully disconnected from MQTT and the session
 has been deleted. This is useful after updating the firmware.
 
 #### Helpers
 
-```cpp
-uint8_t espMqttManagerHelpers::signalQuality();
-```
+##### `uint8_t espMqttManagerHelpers::signalQuality();`
 
 Returns the WiFi signal quality as a percentage.
 
-```cpp
-void espMqttManagerHelpers::handleUpdate(const uint8_t* payload, size_t length, size_t index, size_t total);
-bool espMqttManagerHelpers::updated;
-```
+##### `void espMqttManagerHelpers::handleUpdate(const uint8_t* payload, size_t length, size_t index, size_t total);`
+##### `bool espMqttManagerHelpers::updated;`
 
 Can be used to update the firmware of the device. The arguments match the ones from the onMessage callback from espMqttClient.
 The `updated` boolean is a flag that is set when the update has been (successfully) completed.

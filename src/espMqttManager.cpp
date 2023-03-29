@@ -10,6 +10,7 @@ the LICENSE file.
 
 #include "espMqttManager.h"
 #include "Helpers/Logging.h"
+#include "Helpers/Blinker.h"
 
 void onSetupSession() {
   espMqttManager::sessionReady();

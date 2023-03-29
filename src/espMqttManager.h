@@ -18,6 +18,7 @@ the LICENSE file.
 
 #include <espMqttClient.h>
 
+#include "Config.h"
 #include "Helpers.h"
 #include "Uptime.h"
 #include "Blinker.h"

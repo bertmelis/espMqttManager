@@ -8,24 +8,8 @@ the LICENSE file.
 
 #include <Arduino.h>
 
-#if defined(ARDUINO_ARCH_ESP8266)
-#include <LittleFS.h>
-#define EMM_FILE_READ "r"
-#elif defined(ARDUINO_ARCH_ESP32)
-#include <SPIFFS.h>
-#define EMM_FILE_READ FILE_READ
-#endif
-
-#include <IPAddress.h>
-
-#include <ArduinoJson.h>
-
 #include "espMqttManager.h"
 #include "Logging.h"
-
-#ifndef EMM_CONFIG_FILE
-#define EMM_CONFIG_FILE "/config.json"
-#endif
 
 void onSetupSession() {
   espMqttManager::sessionReady();
@@ -53,6 +37,7 @@ espMqttManagerHelpers::Blinker blinker(RGB_BUILTIN);
 #else
 espMqttManagerHelpers::Blinker blinker(LED_BUILTIN);
 #endif
+espMqttManagerHelpers::Config config;
 
 void idle();
 void waitForWiFi();
@@ -75,61 +60,6 @@ stateFunction state = idle;
 uint32_t timer = 0;
 uint32_t interval = 0;
 
-struct Config {
-  char SSID[64];
-  char PSK[64];
-  IPAddress hostIP;
-  char hostname[64];
-  uint16_t port;
-  char devicename[64];
-} config;
-
-bool getConfig() {
-  #if defined(ARDUINO_ARCH_ESP8266)
-  #define EMM_FILESYSTEM LittleFS
-  #elif defined(ARDUINO_ARCH_ESP32)
-  #define EMM_FILESYSTEM SPIFFS
-  #endif
-
-  if (!EMM_FILESYSTEM.begin()) {
-     emm_log_e("Error mounting filesystem");
-     return false;
-  }
-  File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE, EMM_FILE_READ);
-  if (!file) {
-    emm_log_e("Error opening settings.json");
-    return false;
-  }
-  StaticJsonDocument<256> doc;
-  DeserializationError error = deserializeJson(doc, file);
-  if (error) {
-    emm_log_e("JSON deserialization error: %s", error.c_str());
-    return false;
-  }
-  strlcpy(config.SSID,
-          doc["SSID"] | "",
-          sizeof(config.SSID));
-  strlcpy(config.PSK,
-          doc["PSK"] | "",
-          sizeof(config.PSK));
-  JsonArray hostIP = doc["IPAddress"];
-  uint8_t IPAddress_0 = hostIP[0] | 0;
-  uint8_t IPAddress_1 = hostIP[1] | 0;
-  uint8_t IPAddress_2 = hostIP[2] | 0;
-  uint8_t IPAddress_3 = hostIP[3] | 0;
-  config.hostIP = IPAddress(IPAddress_0, IPAddress_1, IPAddress_2, IPAddress_3);
-  strlcpy(config.hostname,
-          doc["hostname"] | "",
-          sizeof(config.hostname));
-  config.port = doc["port"] | 1883;
-  strlcpy(config.devicename,
-          doc["devicename"] | "",
-          sizeof(config.devicename));
-  file.close();
-  EMM_FILESYSTEM.end();
-  return true;
-}
-
 uint32_t getBackoffTimerVal(uint32_t currentInterval) {
   if (currentInterval == 0) currentInterval = 2000;
   currentInterval *= 2;
@@ -143,7 +73,7 @@ void espMqttManager::setup() {
   WiFi.setAutoReconnect(true);
   WiFi.setAutoConnect(false);
 
-  if (!getConfig()) {
+  if (!config.getConfig()) {
     emm_log_e("Error getting config");
     return;
   }

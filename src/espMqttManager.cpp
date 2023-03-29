@@ -9,7 +9,7 @@ the LICENSE file.
 #include <Arduino.h>
 
 #include "espMqttManager.h"
-#include "Logging.h"
+#include "Helpers/Logging.h"
 
 void onSetupSession() {
   espMqttManager::sessionReady();

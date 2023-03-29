@@ -37,6 +37,7 @@ class Blinker {
   void blink(uint32_t interval);
   #endif
   void off();
+  bool isOn() const;
   void loop();
 
  protected:

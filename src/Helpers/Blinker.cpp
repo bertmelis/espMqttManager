@@ -54,6 +54,10 @@ void Blinker::off() {
   #endif
 }
 
+bool Blinker::isOn() const {
+  return _state;
+}
+
 void Blinker::loop() {
   if (!_state) return;
   if (millis() - _lastInterval >= _interval) {

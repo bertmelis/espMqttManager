@@ -20,7 +20,8 @@ void onMqttConnected() {
   (void)0;
 }
 
-void onMqttDisconnected() {
+void onMqttDisconnected(espMqttClientTypes::DisconnectReason reason) {
+  (void) reason;
   (void)0;
 }
 
@@ -273,11 +274,11 @@ void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
     interval = getBackoffTimerVal(interval);
     emm_log_i("Disconnected from MQTT");
     state = reconnectWaitMqtt;
-    onMqttDisconnected();
+    onMqttDisconnected(reason);
   } else if (state == waitForDisconnect) {
     emm_log_i("Disconnected from MQTT");
     state = idle;
-    onMqttDisconnected();
+    onMqttDisconnected(reason);
   } else if (state == waitForDisconnectCleanSession) {
     emm_log_i("Disconnected from MQTT (CS-1)");
     interval = 0;

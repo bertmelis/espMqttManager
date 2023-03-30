@@ -247,7 +247,6 @@ void onMqttClientConnected(bool sessionPresent) {
 }
 
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
-  (void) reason;
   timer = millis();
   if (state == waitForWiFi ||
       state == reconnectWaitMqtt ||

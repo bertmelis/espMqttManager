@@ -44,6 +44,7 @@ void start();
 void loop();
 void sessionReady();
 bool disconnect(bool clearSession = false);
+bool connected();
 #if ESP_MQTT_MANAGER_SECURE
 extern espMqttClientSecure mqttClient;
 #else

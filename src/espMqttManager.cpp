@@ -139,6 +139,10 @@ bool espMqttManager::disconnect(bool clearSession) {
   return true;
 }
 
+bool espMqttManager::connected() {
+  return (state == connected) ? true : false;
+}
+
 void idle() {
   (void)0;
 }

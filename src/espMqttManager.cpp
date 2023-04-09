@@ -111,6 +111,9 @@ void espMqttManager::loop() {
     // mqttClient.disconnect(true);  // this will set state back to _mqttConnecting
     state = waitForWiFi;
   }
+  #if defined(ARDUINO_ARCH_ESP8266)
+  espMqttManager::mqttClient.loop();
+  #endif
   blinker.loop();
   state();
 }

@@ -123,15 +123,20 @@ void espMqttManager::sessionReady() {
   }
 }
 
-void espMqttManager::disconnect(bool clearSession) {
+bool espMqttManager::disconnect(bool clearSession) {
+  if (state != connected) {
+    return false;
+  }
   // set state first to be in proper state when handling onMqttClientDisconnected
   if (clearSession) {
     state = waitForDisconnectCleanSession;
+    mqttClient.setCleanSession(true);
   } else {
     state = waitForDisconnect;
   }
   timer = millis();
   mqttClient.disconnect();
+  return true;
 }
 
 void idle() {

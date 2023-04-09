@@ -259,19 +259,19 @@ void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
     blinker.blink(250);
     #endif
     interval = getBackoffTimerVal(interval);
-    emm_log_i("Disconnected from to MQTT");
+    emm_log_i("Disconnected from MQTT");
     state = reconnectWaitMqtt;
     onMqttDisconnected();
   } else if (state == waitForDisconnect) {
-    emm_log_i("Disconnected from to MQTT");
+    emm_log_i("Disconnected from MQTT");
     state = idle;
     onMqttDisconnected();
   } else if (state == waitForDisconnectCleanSession) {
-    emm_log_i("Disconnected from to MQTT (CS-1)");
+    emm_log_i("Disconnected from MQTT (CS-1)");
     interval = 0;
     state = reconnectWaitCleanSession;
   } else if (state == waitForMqttCleanSession) {
-    emm_log_i("Disconnected from to MQTT (CS-2)");
+    emm_log_i("Disconnected from MQTT (CS-2)");
     interval = getBackoffTimerVal(interval);
     state = reconnectWaitCleanSession;
   } else if (state == waitForDisconnectFinal) {

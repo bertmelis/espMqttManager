@@ -16,6 +16,14 @@ void onSetupSession() {
   espMqttManager::sessionReady();
 }
 
+void onWiFiConnected() {
+  (void)0;
+}
+
+void onWiFiDisconnected() {
+  (void)0;
+}
+
 void onMqttConnected() {
   (void)0;
 }
@@ -34,14 +42,10 @@ espMqttClientSecure espMqttManager::mqttClient;
 #else
 espMqttClient espMqttManager::mqttClient;
 #endif
-#ifdef RGB_BUILTIN
-espMqttManagerHelpers::Blinker blinker(RGB_BUILTIN);
-#else
-espMqttManagerHelpers::Blinker blinker(LED_BUILTIN);
-#endif
 espMqttManagerHelpers::Config config;
 
 void idle();
+void startWiFi();
 void waitForWiFi();
 void reconnectWaitMqtt();
 void waitForMqtt();
@@ -93,50 +97,59 @@ void espMqttManager::setup() {
   if (strlen(config.devicename) > 0) {
     mqttClient.setClientId(config.devicename);
   }
-  blinker.off();
 }
 
 void espMqttManager::start() {
-  WiFi.begin(config.SSID, config.PSK);
-  state = waitForWiFi;
-  #ifdef RGB_BUILTIN
-  blinker.blink(100, espMqttManagerHelpers::green);
-  #elif defined (LED_BUILTIN)
-  blinker.blink(100);
-  #endif
+  state = startWiFi;
 }
 
 void espMqttManager::loop() {
   // espMqttManager doesn't use WiFi events so we have to monitor WiFi here
-  if (WiFi.status() != WL_CONNECTED) {
+  if (WiFi.status() != WL_CONNECTED && state != waitForWiFi) {
     // mqttClient.disconnect(true);  // this will set state back to _mqttConnecting
-    state = waitForWiFi;
+    state = startWiFi;
+    onWiFiDisconnected();
   }
-  blinker.loop();
+  #if defined(ARDUINO_ARCH_ESP8266)
+  espMqttManager::mqttClient.loop();
+  #endif
   state();
 }
 
 void espMqttManager::sessionReady() {
   if (state == setupSession) {
-    blinker.off();
     emm_log_i("Session ready");
     state = connected;
   }
 }
 
-void espMqttManager::disconnect(bool clearSession) {
+bool espMqttManager::disconnect(bool clearSession) {
+  if (state != connected) {
+    return false;
+  }
   // set state first to be in proper state when handling onMqttClientDisconnected
   if (clearSession) {
     state = waitForDisconnectCleanSession;
+    mqttClient.setCleanSession(true);
   } else {
     state = waitForDisconnect;
   }
   timer = millis();
   mqttClient.disconnect();
+  return true;
+}
+
+bool espMqttManager::isConnected() {
+  return (state == connected) ? true : false;
 }
 
 void idle() {
   (void)0;
+}
+
+void startWiFi() {
+  WiFi.begin(config.SSID, config.PSK);
+  state = waitForWiFi;
 }
 
 void waitForWiFi() {
@@ -145,11 +158,7 @@ void waitForWiFi() {
     state = reconnectWaitMqtt;
     timer = millis();
     interval = 0;
-    #ifdef RGB_BUILTIN
-    blinker.blink(250, espMqttManagerHelpers::green);
-    #elif defined (LED_BUILTIN)
-    blinker.blink(250);
-    #endif
+    onWiFiConnected();
   }
 }
 
@@ -157,11 +166,6 @@ void reconnectWaitMqtt() {
   if (millis() - timer > interval) {
     if (espMqttManager::mqttClient.connect()) {
       emm_log_i("Connecting to MQTT");
-      #ifdef RGB_BUILTIN
-      blinker.blink(100, espMqttManagerHelpers::blue);
-      #elif defined (LED_BUILTIN)
-      blinker.blink(100);
-      #endif
       state = waitForMqtt;
     }
   }
@@ -228,16 +232,10 @@ void onMqttClientConnected(bool sessionPresent) {
   if (state == waitForMqtt) {
     if (sessionPresent) {
       emm_log_i("Connected to MQTT");
-      blinker.off();
       state = connected;
       onMqttConnected();
     } else {
       emm_log_i("Connected to MQTT, no session present");
-      #ifdef RGB_BUILTIN
-      blinker.blink(50, espMqttManagerHelpers::blue);
-      #elif defined (LED_BUILTIN)
-      blinker.blink(50);
-      #endif
       state = setupSession;
       onSetupSession();
     }
@@ -248,32 +246,26 @@ void onMqttClientConnected(bool sessionPresent) {
 }
 
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
-  (void) reason;
   timer = millis();
   if (state == waitForWiFi ||
       state == reconnectWaitMqtt ||
       state == waitForMqtt ||
       state == setupSession ||
       state == connected) {
-    #ifdef RGB_BUILTIN
-    blinker.blink(250, espMqttManagerHelpers::blue);
-    #elif defined (LED_BUILTIN)
-    blinker.blink(250);
-    #endif
     interval = getBackoffTimerVal(interval);
-    emm_log_i("Disconnected from to MQTT");
+    emm_log_i("Disconnected from MQTT");
     state = reconnectWaitMqtt;
     onMqttDisconnected(reason);
   } else if (state == waitForDisconnect) {
-    emm_log_i("Disconnected from to MQTT");
+    emm_log_i("Disconnected from MQTT");
     state = idle;
     onMqttDisconnected(reason);
   } else if (state == waitForDisconnectCleanSession) {
-    emm_log_i("Disconnected from to MQTT (CS-1)");
+    emm_log_i("Disconnected from MQTT (CS-1)");
     interval = 0;
     state = reconnectWaitCleanSession;
   } else if (state == waitForMqttCleanSession) {
-    emm_log_i("Disconnected from to MQTT (CS-2)");
+    emm_log_i("Disconnected from MQTT (CS-2)");
     interval = getBackoffTimerVal(interval);
     state = reconnectWaitCleanSession;
   } else if (state == waitForDisconnectFinal) {

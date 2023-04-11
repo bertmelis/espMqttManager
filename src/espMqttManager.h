@@ -33,6 +33,8 @@ the LICENSE file.
 #endif
 
 void onSetupSession() __attribute__((weak));
+void onWiFiConnected() __attribute__((weak));
+void onWiFiDisconnected() __attribute__((weak));
 void onMqttConnected() __attribute__((weak));
 void onMqttDisconnected() __attribute__((weak));
 void onReset() __attribute__((weak));
@@ -43,7 +45,8 @@ void setup();
 void start();
 void loop();
 void sessionReady();
-void disconnect(bool clearSession = false);
+bool disconnect(bool clearSession = false);
+bool isConnected();
 #if ESP_MQTT_MANAGER_SECURE
 extern espMqttClientSecure mqttClient;
 #else

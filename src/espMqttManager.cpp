@@ -150,7 +150,6 @@ void idle() {
 void startWiFi() {
   WiFi.begin(config.SSID, config.PSK);
   state = waitForWiFi;
-  #endif
 }
 
 void waitForWiFi() {

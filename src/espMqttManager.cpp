@@ -16,6 +16,14 @@ void onSetupSession() {
   espMqttManager::sessionReady();
 }
 
+void onWiFiConnected() {
+  (void)0;
+}
+
+void onWiFiDisconnected() {
+  (void)0;
+}
+
 void onMqttConnected() {
   (void)0;
 }
@@ -42,6 +50,7 @@ espMqttManagerHelpers::Blinker blinker(LED_BUILTIN);
 espMqttManagerHelpers::Config config;
 
 void idle();
+void startWiFi();
 void waitForWiFi();
 void reconnectWaitMqtt();
 void waitForMqtt();
@@ -97,20 +106,15 @@ void espMqttManager::setup() {
 }
 
 void espMqttManager::start() {
-  WiFi.begin(config.SSID, config.PSK);
-  state = waitForWiFi;
-  #ifdef RGB_BUILTIN
-  blinker.blink(100, espMqttManagerHelpers::green);
-  #elif defined (LED_BUILTIN)
-  blinker.blink(100);
-  #endif
+  state = startWiFi;
 }
 
 void espMqttManager::loop() {
   // espMqttManager doesn't use WiFi events so we have to monitor WiFi here
-  if (WiFi.status() != WL_CONNECTED) {
+  if (WiFi.status() != WL_CONNECTED && state != waitForWiFi) {
     // mqttClient.disconnect(true);  // this will set state back to _mqttConnecting
-    state = waitForWiFi;
+    state = startWiFi;
+    onWiFiDisconnected();
   }
   #if defined(ARDUINO_ARCH_ESP8266)
   espMqttManager::mqttClient.loop();
@@ -151,6 +155,16 @@ void idle() {
   (void)0;
 }
 
+void startWiFi() {
+  WiFi.begin(config.SSID, config.PSK);
+  state = waitForWiFi;
+  #ifdef RGB_BUILTIN
+  blinker.blink(100, espMqttManagerHelpers::green);
+  #elif defined (LED_BUILTIN)
+  blinker.blink(100);
+  #endif
+}
+
 void waitForWiFi() {
   if (WiFi.status() == WL_CONNECTED) {
     emm_log_i("WiFi connected");
@@ -162,6 +176,7 @@ void waitForWiFi() {
     #elif defined (LED_BUILTIN)
     blinker.blink(250);
     #endif
+    onWiFiConnected();
   }
 }
 

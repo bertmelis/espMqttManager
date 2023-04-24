@@ -35,6 +35,8 @@ class Config {
   char hostname[64];
   uint16_t port;
   char devicename[64];
+  char username[64];
+  char password[64];
 
   bool getConfig();
 };

@@ -36,7 +36,7 @@ void onSetupSession() __attribute__((weak));
 void onWiFiConnected() __attribute__((weak));
 void onWiFiDisconnected() __attribute__((weak));
 void onMqttConnected() __attribute__((weak));
-void onMqttDisconnected() __attribute__((weak));
+void onMqttDisconnected(espMqttClientTypes::DisconnectReason reason) __attribute__((weak));
 void onReset() __attribute__((weak));
 
 namespace espMqttManager {

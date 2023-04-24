@@ -23,7 +23,7 @@ bool Config::getConfig() {
   }
   File file = EMM_FILESYSTEM.open(EMM_CONFIG_FILE, EMM_FILE_READ);
   if (!file) {
-    emm_log_e("Error opening settings.json");
+    emm_log_e("Error opening config.json");
     return false;
   }
   StaticJsonDocument<256> doc;

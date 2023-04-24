@@ -97,6 +97,9 @@ void espMqttManager::setup() {
   if (strlen(config.devicename) > 0) {
     mqttClient.setClientId(config.devicename);
   }
+  if (strlen(config.username) > 0) {
+    mqttClient.setCredentials(config.username, config.password);
+  }
 }
 
 void espMqttManager::start() {

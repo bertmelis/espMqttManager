@@ -51,6 +51,12 @@ bool Config::getConfig() {
   strlcpy(devicename,
           doc["devicename"] | "",
           sizeof(devicename));
+  strlcpy(username,
+          doc["username"] | "",
+          sizeof(username));
+  strlcpy(password,
+          doc["password"] | "",
+          sizeof(password));
   file.close();
   EMM_FILESYSTEM.end();
   return true;

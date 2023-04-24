@@ -42,7 +42,6 @@ espMqttClientSecure espMqttManager::mqttClient;
 #else
 espMqttClient espMqttManager::mqttClient;
 #endif
-espMqttManagerHelpers::Config config;
 
 void idle();
 void startWiFi();
@@ -61,10 +60,20 @@ void waitForDisconnectFinal();
 void onMqttClientConnected(bool sessionPresent);
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason);
 
+namespace espMqttManagerInternals {
+
 typedef void (*stateFunction)();
 stateFunction state = idle;
 uint32_t timer = 0;
 uint32_t interval = 0;
+espMqttManagerHelpers::Config config;
+
+}  // end namespace espMqttManagerInternals
+
+using espMqttManagerInternals::state;
+using espMqttManagerInternals::timer;
+using espMqttManagerInternals::interval;
+using espMqttManagerInternals::config;
 
 uint32_t getBackoffTimerVal(uint32_t currentInterval) {
   if (currentInterval == 0) currentInterval = 2000;

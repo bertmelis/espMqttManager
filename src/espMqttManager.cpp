@@ -93,10 +93,6 @@ void espMqttManager::setup() {
   WiFi.setAutoConnect(false);
   WiFi.persistent(false);
 
-  #if defined(DEBUG_ESP_MQTT_MANAGER)
-  vPortCPUInitializeMutex(&loggingMutex);
-  #endif
-
   if (!config.getConfig()) {
     emm_log_e("Error getting config");
     return;

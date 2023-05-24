@@ -12,10 +12,9 @@ the LICENSE file.
   #include <esp32-hal-log.h>
   #if defined(DEBUG_ESP_MQTT_MANAGER)
   // Logging is en/disabled by Arduino framework macros
-    extern portMUX_TYPE loggingMutex;
-    #define emm_log_i(...) vPortEnterCritical(&loggingMutex); log_i(__VA_ARGS__); vPortExitCritical(&loggingMutex)
-    #define emm_log_e(...) vPortEnterCritical(&loggingMutex); log_e(__VA_ARGS__); vPortExitCritical(&loggingMutex)
-    #define emm_log_w(...) vPortEnterCritical(&loggingMutex); log_w(__VA_ARGS__); vPortExitCritical(&loggingMutex)
+    #define emm_log_i(...) log_i(__VA_ARGS__)
+    #define emm_log_e(...) log_e(__VA_ARGS__)
+    #define emm_log_w(...) log_w(__VA_ARGS__)
   #else
   // Logging is disabled
     #define emm_log_i(...)

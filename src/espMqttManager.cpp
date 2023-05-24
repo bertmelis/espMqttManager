@@ -37,10 +37,18 @@ void onReset() {
   ESP.restart();
 }
 
-#if ESP_MQTT_MANAGER_SECURE
-espMqttClientSecure espMqttManager::mqttClient;
+#ifdef ESP_MQTT_CLIENT_CUSTOM_TASK
+  #if ESP_MQTT_MANAGER_SECURE
+  espMqttClientSecure espMqttManager::mqttClient(espMqttClientTypes::UseInternalTask::NO);
+  #else
+  espMqttClient espMqttManager::mqttClient;
+  #endif
 #else
-espMqttClient espMqttManager::mqttClient;
+  #if ESP_MQTT_MANAGER_SECURE
+  espMqttClientSecure espMqttManager::mqttClient;
+  #else
+  espMqttClient espMqttManager::mqttClient;
+  #endif
 #endif
 
 void idle();
@@ -117,31 +125,16 @@ void espMqttManager::setup() {
 
 void espMqttManager::start() {
   state = startWiFi;
-  mqttReconnectTimer = millis();
+  wifiReconnectTimer = millis();
   interval = 0;
 }
 
 void espMqttManager::loop() {  // espMqttManager doesn't use WiFi events so we have to monitor WiFi here
   if (WiFi.status() != WL_CONNECTED && state != startWiFi && state != waitForWiFi) {
-    if (!disconnectCalled) {
-      disconnectCalled = true;
+    state = startWiFi;
+    wifiReconnectTimer = millis();
+    interval = 0;
     onWiFiDisconnected();
-    }
-    if (millis() - wifiReconnectTimer > 10000) {
-      
-      wifiReconnectTimer = millis();
-      if (WiFi.reconnect()) {
-        emm_log_i("Trying to reconnect to WiFi");
-      } else {
-        emm_log_i("Reconnect to WiFi failed");
-      }
-    }
-  } else if (WiFi.status() == WL_CONNECTED) {
-    disconnectCalled = false;
-  }
-  static uint32_t lastTime = millis();
-  if (millis() - lastTime > 10000) {
-    lastTime = millis();
   }
   #if defined(ARDUINO_ARCH_ESP8266)
   espMqttManager::mqttClient.loop();
@@ -153,6 +146,7 @@ void espMqttManager::sessionReady() {
   if (state == setupSession) {
     emm_log_i("Session ready");
     state = connected;
+    onMqttConnected();
   }
 }
 
@@ -181,14 +175,14 @@ void idle() {
 }
 
 void startWiFi() {
-  if (millis() - mqttReconnectTimer > interval) {
+  if (millis() - wifiReconnectTimer > interval) {
     if (WiFi.begin(config.SSID, config.PSK) != WL_CONNECT_FAILED) {
       #if defined(EMM_LOWER_WIFIPOWER)
       WiFi.setTxPower(EMM_LOWER_WIFIPOWER);
       #endif
-  state = waitForWiFi;
+      state = waitForWiFi;
     }
-    mqttReconnectTimer = millis();
+    wifiReconnectTimer = millis();
     interval = getBackoffTimerVal(interval);
   }
 }

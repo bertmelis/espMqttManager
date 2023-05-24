@@ -17,8 +17,9 @@ Colour red = {25, 0, 0};
 Colour orange = {25, 17, 0};
 #endif
 
-Blinker::Blinker(int pin)
+Blinker::Blinker(int pin, uint8_t valOff)
 : _pin(pin)
+, _valOff(valOff)
 , _state(false)
 , _ledState(false)
 , _interval(100)
@@ -50,7 +51,7 @@ void Blinker::off() {
   #ifdef RGB_BUILTIN
   neopixelWrite(_pin, 0, 0, 0);
   #else
-  digitalWrite(_pin, HIGH);
+  digitalWrite(_pin, _valOff);
   #endif
 }
 

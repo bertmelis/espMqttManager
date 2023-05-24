@@ -30,7 +30,7 @@ extern Colour orange;
 
 class Blinker {
  public:
-  explicit Blinker(int pin);
+  explicit Blinker(int pin, uint8_t valOff = LOW);
   #ifdef RGB_BUILTIN
   void blink(uint32_t interval, Colour colour);
   #else
@@ -42,6 +42,7 @@ class Blinker {
 
  protected:
   const int _pin;
+  const uint8_t _valOff;
   bool _state;
   bool _ledState;
   uint32_t _interval;

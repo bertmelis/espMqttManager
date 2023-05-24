@@ -37,18 +37,10 @@ void onReset() {
   ESP.restart();
 }
 
-#ifdef ESP_MQTT_CLIENT_CUSTOM_TASK
-  #if ESP_MQTT_MANAGER_SECURE
-  espMqttClientSecure espMqttManager::mqttClient(espMqttClientTypes::UseInternalTask::NO);
-  #else
-  espMqttClient espMqttManager::mqttClient;
-  #endif
+#if ESP_MQTT_MANAGER_SECURE
+espMqttClientSecure espMqttManager::mqttClient;
 #else
-  #if ESP_MQTT_MANAGER_SECURE
-  espMqttClientSecure espMqttManager::mqttClient;
-  #else
-  espMqttClient espMqttManager::mqttClient;
-  #endif
+espMqttClient espMqttManager::mqttClient;
 #endif
 
 void idle();

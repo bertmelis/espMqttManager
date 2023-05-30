@@ -33,17 +33,17 @@ class Blinker {
   explicit Blinker(int pin, uint8_t valOff = LOW);
   #ifdef RGB_BUILTIN
   void blink(uint32_t interval, Colour colour);
+  void on(Colour colour);
   #else
   void blink(uint32_t interval);
+  void on();
   #endif
   void off();
-  bool isOn() const;
   void loop();
 
  protected:
   const int _pin;
   const uint8_t _valOff;
-  bool _state;
   bool _ledState;
   uint32_t _interval;
   uint32_t _lastInterval;

@@ -20,7 +20,6 @@ Colour orange = {25, 17, 0};
 Blinker::Blinker(int pin, uint8_t valOff)
 : _pin(pin)
 , _valOff(valOff)
-, _state(false)
 , _ledState(false)
 , _interval(100)
 , _lastInterval(0)
@@ -42,12 +41,23 @@ void Blinker::blink(uint32_t interval) {
   _interval = interval;
   _lastInterval = millis() - _interval;
   _ledState = false;
-  _state = true;
   loop();
 }
 
+#ifdef RGB_BUILTIN
+void Blinker::on(Colour colour) {
+#else
+void Blinker::on() {
+#endif
+  _interval = 0;
+  #ifdef RGB_BUILTIN
+  neopixelWrite(_pin, colour.red, colour.green, colour.blue);
+  #else
+  digitalWrite(_pin, ~_valOff);
+  #endif
+}
+
 void Blinker::off() {
-  _state = false;
   #ifdef RGB_BUILTIN
   neopixelWrite(_pin, 0, 0, 0);
   #else
@@ -55,12 +65,8 @@ void Blinker::off() {
   #endif
 }
 
-bool Blinker::isOn() const {
-  return _state;
-}
-
 void Blinker::loop() {
-  if (!_state) return;
+  if (_interval == 0) return;
   if (millis() - _lastInterval >= _interval) {
     _lastInterval = millis();
     #ifdef RGB_BUILTIN

@@ -32,11 +32,9 @@ class Blinker {
  public:
   explicit Blinker(int pin, uint8_t valOff = LOW);
   #ifdef RGB_BUILTIN
-  void blink(uint32_t interval, Colour colour);
-  void on(Colour colour);
+  void on(Colour colour, uint32_t interval = 0);
   #else
-  void blink(uint32_t interval);
-  void on();
+  void on(uint32_t interval = 0);
   #endif
   void off();
   void loop();

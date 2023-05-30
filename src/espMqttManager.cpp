@@ -257,12 +257,11 @@ void waitForDisconnectFinal() {
 void onMqttClientConnected(bool sessionPresent) {
   interval = 0;
   if (state == waitForMqtt) {
+    emm_log_i("Connected to MQTT (session: %s)", sessionPresent ? "y" : "n");
     if (sessionPresent) {
-      emm_log_i("Connected to MQTT");
       state = connected;
       onMqttConnected();
     } else {
-      emm_log_i("Connected to MQTT, no session present");
       state = setupSession;
       onSetupSession();
     }

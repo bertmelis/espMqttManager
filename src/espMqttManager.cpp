@@ -29,12 +29,12 @@ void onMqttConnected() {
 }
 
 void onMqttDisconnected(espMqttClientTypes::DisconnectReason reason) {
-  (void) reason;
+  (void)reason;
   (void)0;
 }
 
-void onReset() {
-  ESP.restart();
+void onDisconnected() {
+  (void)0;
 }
 
 #if ESP_MQTT_MANAGER_SECURE
@@ -43,41 +43,41 @@ espMqttClientSecure espMqttManager::mqttClient;
 espMqttClient espMqttManager::mqttClient;
 #endif
 
-void idle();
-void startWiFi();
-void waitForWiFi();
-void reconnectWaitMqtt();
-void waitForMqtt();
-void setupSession();
-void connected();
-void waitForDisconnect();
-void waitForDisconnectCleanSession();
-void reconnectWaitCleanSession();
-void waitForMqttCleanSession();
-void connectedCleanSession();
-void waitForDisconnectFinal();
-
 void onMqttClientConnected(bool sessionPresent);
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason);
 
 namespace espMqttManagerInternals {
 
-typedef void (*stateFunction)();
-stateFunction state = idle;
+void connectWiFi();
+void waitWiFi();
+void connectMqtt();
+void setupSession();
+void waitDisconnect();
+
+enum class espMqttManagerState {
+  OFFLINE,
+  CONNECTWIFI,
+  WAITWIFI,
+  CONNECTMQTT,
+  WAITMQTT,
+  SETUPSESSION,
+  CONNECTED,
+  WAITDISCONNECT,
+  DISCONNECTED
+} state;
 uint32_t mqttReconnectTimer = 0;
 uint32_t wifiReconnectTimer = 0;
 uint32_t interval = 0;
-bool disconnectCalled = false;
 espMqttManagerHelpers::Config config;
+
+void setState(espMqttManagerState newState) {
+  emm_log_i("new espMqttManagerInternals::state: %u", newState);
+  state = newState;
+}
 
 }  // end namespace espMqttManagerInternals
 
-using espMqttManagerInternals::state;
-using espMqttManagerInternals::mqttReconnectTimer;
-using espMqttManagerInternals::wifiReconnectTimer;
-using espMqttManagerInternals::interval;
-using espMqttManagerInternals::disconnectCalled;
-using espMqttManagerInternals::config;
+using espMqttManagerInternals::espMqttManagerState;
 
 uint32_t getBackoffTimerVal(uint32_t currentInterval) {
   if (currentInterval == 0) currentInterval = 2000;
@@ -93,67 +93,91 @@ void espMqttManager::setup() {
   WiFi.setAutoConnect(false);
   WiFi.persistent(false);
 
-  if (!config.getConfig()) {
+  if (!espMqttManagerInternals::config.getConfig()) {
     emm_log_e("Error getting config");
     return;
   }
 
-  mqttClient.setCleanSession(false);
+  mqttClient.setCleanSession(true);
   mqttClient.setKeepAlive(65);
   mqttClient.onConnect(onMqttClientConnected);
   mqttClient.onDisconnect(onMqttClientDisconnected);
-  if (strlen(config.hostname) > 0) {
-    mqttClient.setServer(config.hostname, config.port);
+  if (strlen(espMqttManagerInternals::config.hostname) > 0) {
+    mqttClient.setServer(espMqttManagerInternals::config.hostname, espMqttManagerInternals::config.port);
   } else {
-    mqttClient.setServer(config.hostIP, config.port);
+    mqttClient.setServer(espMqttManagerInternals::config.hostIP, espMqttManagerInternals::config.port);
   }
-  if (strlen(config.devicename) > 0) {
-    mqttClient.setClientId(config.devicename);
+  if (strlen(espMqttManagerInternals::config.devicename) > 0) {
+    mqttClient.setClientId(espMqttManagerInternals::config.devicename);
   }
-  if (strlen(config.username) > 0) {
-    mqttClient.setCredentials(config.username, config.password);
+  if (strlen(espMqttManagerInternals::config.username) > 0) {
+    mqttClient.setCredentials(espMqttManagerInternals::config.username, espMqttManagerInternals::config.password);
   }
 }
 
 void espMqttManager::start() {
-  state = startWiFi;
-  wifiReconnectTimer = millis();
-  interval = 0;
+  espMqttManagerInternals::setState(espMqttManagerState::CONNECTWIFI);
+  espMqttManagerInternals::wifiReconnectTimer = millis();
+  espMqttManagerInternals::interval = 0;
 }
 
 void espMqttManager::loop() {  // espMqttManager doesn't use WiFi events so we have to monitor WiFi here
-  if (WiFi.status() != WL_CONNECTED && state != startWiFi && state != waitForWiFi) {
-    state = startWiFi;
-    wifiReconnectTimer = millis();
-    interval = 0;
+  if (WiFi.status() != WL_CONNECTED && espMqttManagerInternals::state != espMqttManagerState::CONNECTWIFI && espMqttManagerInternals::state != espMqttManagerState::WAITWIFI) {
+    espMqttManagerInternals::setState(espMqttManagerState::CONNECTWIFI);
+    espMqttManagerInternals::wifiReconnectTimer = millis();
+    espMqttManagerInternals::interval = 0;
     onWiFiDisconnected();
+  }
+  switch (state) {
+    case espMqttManagerState::OFFLINE:
+    idle();
+    break;
+    case espMqttManagerState::CONNECTWIFI:
+    connectWiFi();
+    break;
+    case espMqttManagerState::WAITWIFI:
+    waitWiFi();
+    break;
+    case espMqttManagerState::CONNECTMQTT:
+    connectMqtt();
+    break;
+    case espMqttManagerState::WAITMQTT:
+    idle();
+    break;
+    case espMqttManagerState::SETUPSESSION:
+    setupSession();
+    break;
+    case espMqttManagerState::CONNECTED:
+    idle();
+    break;
+    case espMqttManagerState::WAITDISCONNECT:
+    waitDisconnect();
+    break;
+    case espMqttManagerState::DISCONNECTED:
+    idle();
+    break;
   }
   #if defined(ARDUINO_ARCH_ESP8266)
   espMqttManager::mqttClient.loop();
   #endif
-  state();
 }
 
 void espMqttManager::sessionReady() {
-  if (state == setupSession) {
+  if (state == espMqttManagerState::SETUPSESSION) {
     emm_log_i("Session ready");
-    state = connected;
+    espMqttManager::mqttClient.setCleanSession(false);
+    espMqttManagerInternals::setState(espMqttManagerState::CONNECTED);
     onMqttConnected();
   }
 }
 
-bool espMqttManager::disconnect(bool clearSession) {
-  if (state != connected) {
+bool espMqttManager::disconnect() {
+  if (state != espMqttManagerState::CONNECTED) {
     return false;
   }
-  // set state first to be in proper state when handling onMqttClientDisconnected
-  if (clearSession) {
-    state = waitForDisconnectCleanSession;
-    mqttClient.setCleanSession(true);
-  } else {
-    state = waitForDisconnect;
-  }
-  mqttReconnectTimer = millis();
+  // set espMqttManagerInternals::state first to be in proper espMqttManagerInternals::state when handling onMqttClientDisconnected
+  espMqttManagerInternals::state = espMqttManagerState::WAITDISCONNECT;
+  espMqttManagerInternals::mqttReconnectTimer = millis();
   mqttClient.disconnect();
   return true;
 }
@@ -162,140 +186,78 @@ bool espMqttManager::isConnected() {
   return (state == connected) ? true : false;
 }
 
-void idle() {
+void espMqttManagerInternals::idle() {
   (void)0;
 }
 
-void startWiFi() {
-  if (millis() - wifiReconnectTimer > interval) {
-    if (WiFi.begin(config.SSID, config.PSK) != WL_CONNECT_FAILED) {
+void espMqttManagerInternals::connectWiFi() {
+  if (millis() - espMqttManagerInternals::wifiReconnectTimer > espMqttManagerInternals::interval) {
+    if (WiFi.begin(config.SSID, espMqttManagerInternals::config.PSK) != WL_CONNECT_FAILED) {
       #if defined(EMM_LOWER_WIFIPOWER)
       WiFi.setTxPower(EMM_LOWER_WIFIPOWER);
       #endif
-      state = waitForWiFi;
+      espMqttManagerInternals::setState(espMqttManagerState::WAITWIFI);
     }
-    wifiReconnectTimer = millis();
-    interval = getBackoffTimerVal(interval);
+    espMqttManagerInternals::wifiReconnectTimer = millis();
+    espMqttManagerInternals::interval = getBackoffTimerVal(interval);
   }
 }
 
-void waitForWiFi() {
+void espMqttManagerInternals::waitWiFi() {
   if (WiFi.status() == WL_CONNECTED) {
     emm_log_i("WiFi connected");
-    state = reconnectWaitMqtt;
-    mqttReconnectTimer = millis();
-    interval = 0;
+    espMqttManagerInternals::setState(espMqttManagerState::CONNECTMQTT);
+    espMqttManagerInternals::mqttReconnectTimer = millis();
+    espMqttManagerInternals::interval = 0;
     onWiFiConnected();
+  } else if (millis() - espMqttManagerInternals::wifiReconnectTimer > espMqttManagerInternals::interval) {
+    espMqttManagerInternals::setState(espMqttManagerState::CONNECTWIFI);
   }
 }
 
-void reconnectWaitMqtt() {
-  if (WiFi.status() == WL_CONNECTED && millis() - mqttReconnectTimer > interval) {
-    if (espMqttManager::mqttClient.connect()) {
-      emm_log_i("Connecting to MQTT");
-      state = waitForMqtt;
-    }
+void espMqttManagerInternals::connectMqtt() {
+  if (millis() - espMqttManagerInternals::mqttReconnectTimer > espMqttManagerInternals::interval && espMqttManager::mqttClient.connect()) {
+    emm_log_i("Connecting to MQTT");
+    espMqttManagerInternals::setState(espMqttManagerState::WAITMQTT);
   }
 }
 
-void waitForMqtt() {
-  (void)0;
-  // state released by espMqttClient onConnect callback
+void espMqttManagerInternals::setupSession() {
+  onSetupSession();
+  // espMqttManagerInternals::state released by user action using espMqttManager::sessionSetup()
 }
 
-void setupSession() {
-  (void)0;
-  // state released by user action using espMqttManager::sessionSetup()
-}
-
-void connected() {
-  // send stats
-  (void)0;
-}
-
-void waitForDisconnect() {
-  // state released by espMqttClient onDisconnect callback or force close connection
-  if (millis() - mqttReconnectTimer > ESP_MQTT_MANAGER_DISCONNECT_TIMEOUT) {
+void espMqttManagerInternals::waitDisconnect() {
+  // espMqttManagerInternals::state released by espMqttClient onDisconnect callback or force close connection
+  if (millis() - espMqttManagerInternals::mqttReconnectTimer > ESP_MQTT_MANAGER_DISCONNECT_TIMEOUT) {
     emm_log_i("Disconnecting from MQTT");
     espMqttManager::mqttClient.disconnect(true);
   }
 }
 
-void waitForDisconnectCleanSession() {
-  // state released by espMqttClient onDisconnect callback or force close connection
-  if (millis() - mqttReconnectTimer > ESP_MQTT_MANAGER_DISCONNECT_TIMEOUT) {
-    emm_log_i("Disconnecting from MQTT (CS)");
-    espMqttManager::mqttClient.disconnect(true);
-  }
-}
-
-void reconnectWaitCleanSession() {
-  if (WiFi.status() == WL_CONNECTED && millis() - mqttReconnectTimer > interval) {
-    if (espMqttManager::mqttClient.connect()) {
-      emm_log_i("Reconnecting to MQTT (CS)");
-      state = waitForMqttCleanSession;
-    }
-  }
-}
-
-void waitForMqttCleanSession() {
-  (void)0;
-  // state released by espMqttClient onConnect callback
-}
-
-void connectedCleanSession() {
-  espMqttManager::mqttClient.disconnect();
-  emm_log_i("Disconnecting to MQTT (Final)");
-  state = waitForDisconnectFinal;
-}
-
-void waitForDisconnectFinal() {
-  (void)0;
-  // state released by espMqttClient onDisconnect callback
-}
-
-void onMqttClientConnected(bool sessionPresent) {
-  interval = 0;
-  if (state == waitForMqtt) {
+void espMqttManagerInternals::onMqttClientConnected(bool sessionPresent) {
+  espMqttManagerInternals::interval = 0;
+  if (state == espMqttManagerState::WAITMQTT) {
     emm_log_i("Connected to MQTT (session: %s)", sessionPresent ? "y" : "n");
     if (sessionPresent) {
-      state = connected;
+      espMqttManagerInternals::setState(espMqttManagerState::CONNECTED);
       onMqttConnected();
     } else {
-      state = setupSession;
-      onSetupSession();
+      espMqttManagerInternals::setState(espMqttManagerState::SETUPSESSION);
     }
-  } else if (state == waitForMqttCleanSession) {
-    emm_log_i("Connected to MQTT (CS)");
-    state = connectedCleanSession;
   }
 }
 
 void onMqttClientDisconnected(espMqttClientTypes::DisconnectReason reason) {
-  mqttReconnectTimer = millis();
-  if (state == waitForWiFi ||
-      state == reconnectWaitMqtt ||
-      state == waitForMqtt ||
-      state == setupSession ||
-      state == connected) {
-    interval = getBackoffTimerVal(interval);
+  espMqttManagerInternals::mqttReconnectTimer = millis();
+  if (state == espMqttManagerState::WAITDISCONNECT) {
     emm_log_i("Disconnected from MQTT");
-    state = reconnectWaitMqtt;
-    onMqttDisconnected(reason);
-  } else if (state == waitForDisconnect) {
+    espMqttManagerInternals::setState(espMqttManagerState::DISCONNECTED);
+    onDisconnected();
+  } else {
+    espMqttManagerInternals::interval = getBackoffTimerVal(interval);
     emm_log_i("Disconnected from MQTT");
-    state = idle;
     onMqttDisconnected(reason);
-  } else if (state == waitForDisconnectCleanSession) {
-    emm_log_i("Disconnected from MQTT (CS-1)");
-    interval = 0;
-    state = reconnectWaitCleanSession;
-  } else if (state == waitForMqttCleanSession) {
-    emm_log_i("Disconnected from MQTT (CS-2)");
-    interval = getBackoffTimerVal(interval);
-    state = reconnectWaitCleanSession;
-  } else if (state == waitForDisconnectFinal) {
-    emm_log_i("Disconnected from to MQTT (Final)");
-    onReset();
+    espMqttManagerInternals::setState(espMqttManagerState::CONNECTMQTT);
   }
 }

@@ -19,4 +19,4 @@ jobs:
         pip install platformio
     - name: Cppcheck
       run: |
-        pio check --fail-on-defect=low --flags "--enable=warning --enable=style --enable=performance --suppress=unusedFunction --suppress=preprocessorErrorDirective" --skip-packages --inline-suppr
+        pio check --fail-on-defect=low --flags "--enable=warning --enable=style --enable=performance --suppress=unusedFunction --suppress=preprocessorErrorDirective --inline-suppr" --skip-packages

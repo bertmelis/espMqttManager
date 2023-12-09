@@ -44,6 +44,7 @@ void handleUpdate(const uint8_t* payload, size_t length, size_t index, size_t to
     if (!Update.isRunning()) return;
     written += Update.write(data, length);
   }
+  espMqttManagerHelpers::updated = false;
   if (Update.isFinished()) {
     if (Update.end()) {
       espMqttManagerHelpers::updated = true;

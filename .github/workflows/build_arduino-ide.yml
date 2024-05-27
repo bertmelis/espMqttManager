@@ -30,7 +30,7 @@ jobs:
             - name: ArduinoJson
               source-url: https://github.com/bblanchon/ArduinoJson.git
               version: 57354de
-            - name espMqttClient
+            - name: espMqttClient
               source-url: https://github.com/bertmelis/espMqttClient.git
             - name: ESPAsyncTCP
               source-url: https://github.com/me-no-dev/ESPAsyncTCP.git
@@ -62,7 +62,7 @@ jobs:
             - name: ArduinoJson
               source-url: https://github.com/bblanchon/ArduinoJson.git
               version: 57354de
-            - name espMqttClient
+            - name: espMqttClient
               source-url: https://github.com/bertmelis/espMqttClient.git
             - name: AsyncTCP
               source-url: https://github.com/me-no-dev/AsyncTCP.git

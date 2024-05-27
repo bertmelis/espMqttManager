@@ -13,10 +13,8 @@ the LICENSE file.
 
 #include <Arduino.h>  // millis()
 #if defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266WiFi.h>  //  WiFi.RSSI()
 #include <Updater.h>
 #elif defined(ARDUINO_ARCH_ESP32)
-#include <WiFi.h>
 #include <Update.h>
 #else
 #error Platform not supported
@@ -24,7 +22,6 @@ the LICENSE file.
 
 namespace espMqttManagerHelpers {
 
-uint8_t signalQuality();
 void handleUpdate(const uint8_t* payload, size_t length, size_t index, size_t total);
 extern bool updated;
 

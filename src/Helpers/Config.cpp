@@ -39,10 +39,10 @@ bool Config::getConfig() {
           doc["PSK"] | "",
           sizeof(PSK));
   JsonArray hostIPArray = doc["IPAddress"];
-  uint8_t IPAddress_0 = hostIPArray[0] | 0;
-  uint8_t IPAddress_1 = hostIPArray[1] | 0;
-  uint8_t IPAddress_2 = hostIPArray[2] | 0;
-  uint8_t IPAddress_3 = hostIPArray[3] | 0;
+  uint8_t IPAddress_0 = hostIPArray[0] | 0;  // cppcheck-suppress badBitmaskCheck
+  uint8_t IPAddress_1 = hostIPArray[1] | 0;  // cppcheck-suppress badBitmaskCheck
+  uint8_t IPAddress_2 = hostIPArray[2] | 0;  // cppcheck-suppress badBitmaskCheck
+  uint8_t IPAddress_3 = hostIPArray[3] | 0;  // cppcheck-suppress badBitmaskCheck
   hostIP = IPAddress(IPAddress_0, IPAddress_1, IPAddress_2, IPAddress_3);
   strlcpy(hostname,
           doc["hostname"] | "",

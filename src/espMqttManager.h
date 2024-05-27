@@ -39,7 +39,7 @@ void onWiFiConnected() __attribute__((weak));
 void onWiFiDisconnected() __attribute__((weak));
 void onMqttConnected() __attribute__((weak));
 void onMqttDisconnected(espMqttClientTypes::DisconnectReason reason) __attribute__((weak));
-void onReset() __attribute__((weak));
+void onDisconnected() __attribute__((weak));
 
 namespace espMqttManager {
 
@@ -47,7 +47,7 @@ void setup();
 void start();
 void loop();
 void sessionReady();
-bool disconnect(bool clearSession = false);
+bool disconnect();
 bool isConnected();
 #if ESP_MQTT_MANAGER_SECURE
 extern espMqttClientSecure mqttClient;

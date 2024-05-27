@@ -10,19 +10,6 @@ the LICENSE file.
 
 namespace espMqttManagerHelpers {
 
-uint8_t signalQuality() {
-  uint8_t signal = 0;
-  int32_t rssi = WiFi.RSSI();
-  if (rssi <= -100) {
-    signal = 0;
-  } else if (rssi >= -50) {
-    signal = 100;
-  } else {
-    signal = 2 * (rssi + 100);
-  }
-  return signal;
-}
-
 bool updated = false;
 
 void handleUpdate(const uint8_t* payload, size_t length, size_t index, size_t total) {
@@ -44,6 +31,7 @@ void handleUpdate(const uint8_t* payload, size_t length, size_t index, size_t to
     if (!Update.isRunning()) return;
     written += Update.write(data, length);
   }
+  espMqttManagerHelpers::updated = false;
   if (Update.isFinished()) {
     if (Update.end()) {
       espMqttManagerHelpers::updated = true;

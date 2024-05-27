@@ -92,7 +92,7 @@ uint32_t getBackoffTimerVal(uint32_t currentInterval) {
 
 void espMqttManager::setup() {
   WiFi.setAutoReconnect(false);
-  //WiFi.setAutoConnect(false);  // deprecated
+  // WiFi.setAutoConnect(false);  // deprecated
   WiFi.persistent(false);
 
   if (!espMqttManagerInternals::config.getConfig()) {

@@ -92,7 +92,7 @@ uint32_t getBackoffTimerVal(uint32_t currentInterval) {
 
 void espMqttManager::setup() {
   WiFi.setAutoReconnect(false);
-  WiFi.setAutoConnect(false);
+  //WiFi.setAutoConnect(false);  // deprecated
   WiFi.persistent(false);
 
   if (!espMqttManagerInternals::config.getConfig()) {
@@ -125,9 +125,11 @@ void espMqttManager::start() {
 
 void espMqttManager::loop() {  // espMqttManager doesn't use WiFi events so we have to monitor WiFi here
   if (WiFi.status() != WL_CONNECTED && espMqttManagerInternals::state != espMqttManagerState::CONNECTWIFI && espMqttManagerInternals::state != espMqttManagerState::WAITWIFI) {
+    emm_log_i("WiFi disconnected");
     espMqttManagerInternals::setState(espMqttManagerState::CONNECTWIFI);
     espMqttManagerInternals::wifiReconnectTimer = millis();
     espMqttManagerInternals::interval = 0;
+    WiFi.disconnect(false);
     onWiFiDisconnected();
   }
   switch (espMqttManagerInternals::state) {

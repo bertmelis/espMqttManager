@@ -26,7 +26,7 @@ bool Config::getConfig() {
     emm_log_e("Error opening config.json");
     return false;
   }
-  StaticJsonDocument<256> doc;
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, file);
   if (error) {
     emm_log_e("JSON deserialization error: %s", error.c_str());

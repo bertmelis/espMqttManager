@@ -42,7 +42,7 @@ void Blinker::on(uint32_t interval) {
   _lastInterval = millis() - _interval;
   _ledState = true;
   #ifdef RGB_BUILTIN
-  neopixelWrite(_pin, _colour.red, _colour.green, _colour.blue);
+  rgbLedWrite(_pin, _colour.red, _colour.green, _colour.blue);
   #else
   digitalWrite(_pin, ~_valOff);
   #endif
@@ -50,7 +50,7 @@ void Blinker::on(uint32_t interval) {
 
 void Blinker::off() {
   #ifdef RGB_BUILTIN
-  neopixelWrite(_pin, 0, 0, 0);
+  rgbLedWrite(_pin, 0, 0, 0);
   #else
   digitalWrite(_pin, _valOff);
   #endif
@@ -63,9 +63,9 @@ void Blinker::loop() {
     _lastInterval = millis();
     #ifdef RGB_BUILTIN
     if (_ledState) {
-      neopixelWrite(_pin, 0, 0, 0);
+      rgbLedWrite(_pin, 0, 0, 0);
     } else {
-      neopixelWrite(_pin, _colour.red, _colour.green, _colour.blue);
+      rgbLedWrite(_pin, _colour.red, _colour.green, _colour.blue);
     }
     #else
     if (_ledState) {

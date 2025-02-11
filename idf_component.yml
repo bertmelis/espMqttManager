@@ -1,0 +1,5 @@
+#dependencies:
+#  espMqttClient: ">=1.7.0"
+description: Boilerplate to connect your ESP32 to MQTT
+url: https://github.com/bertmelis/espMqttManager
+version: 0.0.1

@@ -13,10 +13,10 @@ void loop() {
   static uint32_t lastMillis = 0;
   if (millis() - lastMillis > 10000) {
     lastMillis = millis();
-    uint8_t signalQuality = espMqttManagerHelpers::signalQuality();
-    char sqStr[4];
-    snprintf(sqStr, sizeof(sqStr), "%d", signalQuality);
-    espMqttManager::mqttClient.publish("test/topic", 0, false, sqStr);
+    int8_t signalQuality = WiFi.RSSI();
+    char buf[5];
+    snprintf(buf, sizeof(buf), "%d", signalQuality);
+    espMqttManager::mqttClient.publish("test/topic", 0, false, buf);
   }
   espMqttManager::loop();
 }

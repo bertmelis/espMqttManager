@@ -26,14 +26,16 @@ extern Colour blue;
 extern Colour green;
 extern Colour red;
 extern Colour orange;
+extern Colour black;
 #endif
 
 class Blinker {
  public:
-  explicit Blinker(int pin, uint8_t valOff = LOW);
   #ifdef RGB_BUILTIN
+  explicit Blinker(int pin, rgb_led_color_order_t order = LED_COLOR_ORDER_GRB);
   void on(Colour colour, uint32_t interval = 0);
   #else
+  explicit Blinker(int pin, uint8_t valOff = LOW);
   void on(uint32_t interval = 0);
   #endif
   void off();
@@ -41,12 +43,14 @@ class Blinker {
 
  protected:
   const int _pin;
-  const uint8_t _valOff;
   bool _ledState;
   uint32_t _interval;
   uint32_t _lastInterval;
   #ifdef RGB_BUILTIN
+  rgb_led_color_order_t _order;
   Colour _colour;
+  #else
+  const uint8_t _valOff;
   #endif
 };
 

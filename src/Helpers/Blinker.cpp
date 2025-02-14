@@ -15,20 +15,30 @@ Colour blue = {0, 0, 25};
 Colour green = {0, 25, 0};
 Colour red = {25, 0, 0};
 Colour orange = {25, 17, 0};
-#endif
+Colour black = {0, 0, 0};
 
-Blinker::Blinker(int pin, uint8_t valOff)
+Blinker::Blinker(int pin, rgb_led_color_order_t order)
 : _pin(pin)
-, _valOff(valOff)
 , _ledState(false)
 , _interval(100)
 , _lastInterval(0)
-#ifdef RGB_BUILTIN
-, _colour(blue)
-#endif
-{
+, _order(order)
+, _colour(black) {
   // empty
 }
+
+#else
+
+Blinker::Blinker(int pin, uint8_t valOff)
+: _pin(pin)
+, _ledState(false)
+, _interval(100)
+, _lastInterval(0)
+, _valOff(valOff) {
+  // empty
+}
+
+#endif
 
 #ifdef RGB_BUILTIN
 void Blinker::on(Colour colour, uint32_t interval) {
@@ -42,7 +52,7 @@ void Blinker::on(uint32_t interval) {
   _lastInterval = millis() - _interval;
   _ledState = true;
   #ifdef RGB_BUILTIN
-  rgbLedWrite(_pin, _colour.red, _colour.green, _colour.blue);
+  rgbLedWriteOrdered(_pin, _order, _colour.red, _colour.green, _colour.blue);
   #else
   digitalWrite(_pin, ~_valOff);
   #endif
@@ -65,7 +75,7 @@ void Blinker::loop() {
     if (_ledState) {
       rgbLedWrite(_pin, 0, 0, 0);
     } else {
-      rgbLedWrite(_pin, _colour.red, _colour.green, _colour.blue);
+      rgbLedWriteOrdered(_pin, _order, _colour.red, _colour.green, _colour.blue);
     }
     #else
     if (_ledState) {
